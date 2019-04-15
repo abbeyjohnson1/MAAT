@@ -381,7 +381,7 @@ wrapper_object <-
       .$dataf$pars_lklihood[,1] <- get(.$fnames$proposal_lklihood)(.)  
 
       # if doing DREAM MCMC, run static part of algorithm
-      .$static_dream()
+      # .$static_dream()
 
       # run MCMC 
       vapply(1:(.$wpars$mcmc_maxiter-1), .$run_mcmc, numeric(0) )
@@ -397,11 +397,11 @@ wrapper_object <-
       # runs in serial as each step depends on the previous step
       # call runp_mcmc
  
-# need a switch or something for running DE-MC versus DREAM?
+      # need a switch or something for running DE-MC versus DREAM?
    
       # generate proposal matrix
-      # .$gen_proposal_demc(j=j)   
-      .$gen_proposal_dream(j=j)    
+      .$gen_proposal_demc(j=j)   
+      #.$gen_proposal_dream(j=j)    
 
       # evaluate model for proposal on each chain
       .$dataf$out[]  <- 
@@ -414,8 +414,8 @@ wrapper_object <-
       lklihood <- get(.$fnames$proposal_lklihood)(.)   
       
       # accept / reject proposals on each chain 
-      # .$proposal_accept(j=j,lklihood)
-      .$proposal_accept_dream(j=j,lklihood)
+      .$proposal_accept(j=j,lklihood)
+      #.$proposal_accept_dream(j=j,lklihood)
 
       # INSERT function call to handle outlier chains here
 
@@ -499,188 +499,188 @@ wrapper_object <-
 ######################################################################################################################################################
 
     # static part of DREAM algorithm 
-    static_dream <- function(.) {
+    # static_dream <- function(.) {
         
       # number of parameters being estimated
-      .$mcmc$d <- ncol(.$dataf$pars)
+      #.$mcmc$d <- ncol(.$dataf$pars)
 
       # preallocate memory space for algorithmic variables
     
-      .$mcmc$J             <- numeric(.$mcmc$n_CR)
-      .$mcmc$n_id          <- numeric(.$mcmc$n_CR)
-      .$mcmc$CR            <- numeric(.$mcmc$n_CR)
-      .$mcmc$p_CR          <- numeric(.$mcmc$n_CR)
-      .$mcmc$R             <- matrix(data=0,nrow=.$dataf$lp,ncol=.$dataf$lp-1)
-      .$mcmc$current_state <- matrix(data=0,nrow=.$dataf$lp,ncol=.$mcmc$d)
-      .$mcmc$p_state       <- numeric(.$dataf$lp)
-      .$mcmc$std_state     <- numeric(.$mcmc$d)
-      .$mcmc$jump          <- matrix(data=0,nrow=.$dataf$lp,ncol=.$mcmc$d)
-      .$mcmc$draw          <- matrix(data=0,nrow=.$dataf$lp-1,ncol=.$dataf$lp)
-      .$mcmc$lambda        <- matrix(data=0,nrow=.$dataf$lp,ncol=1)
+      #.$mcmc$J             <- numeric(.$mcmc$n_CR)
+      #.$mcmc$n_id          <- numeric(.$mcmc$n_CR)
+      #.$mcmc$CR            <- numeric(.$mcmc$n_CR)
+      #.$mcmc$p_CR          <- numeric(.$mcmc$n_CR)
+      #.$mcmc$R             <- matrix(data=0,nrow=.$dataf$lp,ncol=.$dataf$lp-1)
+      #.$mcmc$current_state <- matrix(data=0,nrow=.$dataf$lp,ncol=.$mcmc$d)
+      #.$mcmc$p_state       <- numeric(.$dataf$lp)
+      #.$mcmc$std_state     <- numeric(.$mcmc$d)
+      #.$mcmc$jump          <- matrix(data=0,nrow=.$dataf$lp,ncol=.$mcmc$d)
+      #.$mcmc$draw          <- matrix(data=0,nrow=.$dataf$lp-1,ncol=.$dataf$lp)
+      #.$mcmc$lambda        <- matrix(data=0,nrow=.$dataf$lp,ncol=1)
       
       # index of chains for Differential Evolution
-      for (kk in 1:.$dataf$lp) .$mcmc$R[kk, ] <- setdiff(1:.$dataf$lp,kk)
+      #for (kk in 1:.$dataf$lp) .$mcmc$R[kk, ] <- setdiff(1:.$dataf$lp,kk)
 
       # crossover values
-      .$mcmc$CR[] <- 1:.$mcmc$n_CR / .$mcmc$n_CR
+      #.$mcmc$CR[] <- 1:.$mcmc$n_CR / .$mcmc$n_CR
 
       # selection probability of crossover values
-      .$mcmc$p_CR[] <- rep(1,.$mcmc$n_CR) / .$mcmc$n_CR
+      #.$mcmc$p_CR[] <- rep(1,.$mcmc$n_CR) / .$mcmc$n_CR
      
       # vector that stores how many times crossover value indices are used
       # initialized to 1's in order to avoid numeric issues
-      .$mcmc$n_id[] <- rep(1,.$mcmc$n_CR)
-    }
+      #.$mcmc$n_id[] <- rep(1,.$mcmc$n_CR)
+    #}
 
     # generate proposal using DREAM algorithm
-    gen_proposal_dream <- function(.,j) {
+    #gen_proposal_dream <- function(.,j) {
       
       # reset matrix of jump vectors to zero
-      .$mcmc$jump[] <- matrix(data=0)
+      #.$mcmc$jump[] <- matrix(data=0)
       
       # current state ('mcmc_chains' number of samples of a d-variate distribution)
-      .$mcmc$current_state[] <- matrix(.$dataf$pars_array[,,j],nrow=.$dataf$lp,ncol=.$mcmc$d)
+      #.$mcmc$current_state[] <- matrix(.$dataf$pars_array[,,j],nrow=.$dataf$lp,ncol=.$mcmc$d)
 
-# this chunk is a repeat of DE-MC code
+      # this chunk is a repeat of DE-MC code
 
       # boundary handling
       # number of data points to be used in boundary handling
-      n <- 1000
-      .$dynamic$pars_bndhndling <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
-      minn <- unlist(lapply(.$dynamic$pars_bndhndling,min))
-      maxn <- unlist(lapply(.$dynamic$pars_bndhndling,max))
+      #n <- 1000
+      #.$dynamic$pars_bndhndling <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
+      #minn <- unlist(lapply(.$dynamic$pars_bndhndling,min))
+      #maxn <- unlist(lapply(.$dynamic$pars_bndhndling,max))
 
       # permute [1,2,...,mcmc_chains-1] mcmc_chains number of times
-      .$mcmc$draw[] <- apply(matrix(runif((.$dataf$lp-1)*.$dataf$lp),.$dataf$lp-1,.$dataf$lp), 2, function(v) sort(v,index.return=T)$ix)
+      #.$mcmc$draw[] <- apply(matrix(runif((.$dataf$lp-1)*.$dataf$lp),.$dataf$lp-1,.$dataf$lp), 2, function(v) sort(v,index.return=T)$ix)
   
       # create a .$dataf$lp x 1 matrix of continuous uniform random values between -c_rand and c_rand
-      .$mcmc$lambda[] <- matrix(runif(.$dataf$lp*1,-.$mcmc$c_rand,.$mcmc$c_rand),.$dataf$lp)
+      #.$mcmc$lambda[] <- matrix(runif(.$dataf$lp*1,-.$mcmc$c_rand,.$mcmc$c_rand),.$dataf$lp)
     
       # compute standard deviation of each dimension (ie,compute standard deviation of each column of current_state matrix)
       # normalized by mcmc_chains-1
-      .$mcmc$std_state[] <- apply(.$mcmc$current_state,2,sd)
+      #.$mcmc$std_state[] <- apply(.$mcmc$current_state,2,sd)
     
-# can vectorize this inner for-loop to improve computational efficiency, but I am not really sure how to do that?
+      # can vectorize this inner for-loop to improve computational efficiency, but I am not really sure how to do that?
      
       # create proposals
-      for (ii in 1:.$dataf$lp) {
+      #for (ii in 1:.$dataf$lp) {
         
          # select delta (equal selection probability) (ie, choose 1 value from the vector [1:delta] with replacement)
-         D <- sample(1:.$mcmc$delta,1,replace=T)
+         #D <- sample(1:.$mcmc$delta,1,replace=T)
       
          # extract vectors a and b not equal to ii
-         a <- .$mcmc$R[ii,.$mcmc$draw[1:D,ii]]
-         b <- .$mcmc$R[ii,.$mcmc$draw[(D+1):(2*D),ii]]
+         #a <- .$mcmc$R[ii,.$mcmc$draw[1:D,ii]]
+         #b <- .$mcmc$R[ii,.$mcmc$draw[(D+1):(2*D),ii]]
       
          # select index of crossover value (weighted sample with replacement)
-         .$mcmc$id <- sample(1:.$mcmc$n_CR,1,replace=T,prob=.$mcmc$p_CR)
+         #.$mcmc$id <- sample(1:.$mcmc$n_CR,1,replace=T,prob=.$mcmc$p_CR)
       
          # draw d values from uniform distribution between 0 and 1
-         zz <- runif(.$mcmc$d)
+         #zz <- runif(.$mcmc$d)
       
          # derive subset A of selected dimensions
-         A <- which(zz < .$mcmc$CR[.$mcmc$id])
+         #A <- which(zz < .$mcmc$CR[.$mcmc$id])
       
          #  how many dimensions are sampled
-         d_star <- length(A)
+         #d_star <- length(A)
       
          # make sure that A contains at least one value
-         if (d_star == 0) A <- which.min(zz); d_star <- 1
+         #if (d_star == 0) A <- which.min(zz); d_star <- 1
       
          # calculate jump rate
-         gamma_d <- 2.38/sqrt(2*D*d_star)
+         #gamma_d <- 2.38/sqrt(2*D*d_star)
 
-# is there a way to consolodate these 3 lines?
+         # is there a way to consolodate these 3 lines?
       
          # select gamma: 80/20 mix (ie, 20% chance gamma = 1)
-         temp1 <- c(gamma_d,1)
-         temp2 <- c(1-.$mcmc$p_gamma,.$mcmc$p_gamma)
-         gamma <- sample(temp1,1,replace=T,prob=temp2)
+         #temp1 <- c(gamma_d,1)
+         #temp2 <- c(1-.$mcmc$p_gamma,.$mcmc$p_gamma)
+         #gamma <- sample(temp1,1,replace=T,prob=temp2)
       
          # compute jump differential evolution of ii-th chain
-         .$mcmc$jump[ii,A] <- .$mcmc$c_ergod*rnorm(d_star)+(1+.$mcmc$lambda[ii])*gamma*sum((.$mcmc$current_state[a,A]-.$mcmc$current_state[b,A]),dim=1)
+         #.$mcmc$jump[ii,A] <- .$mcmc$c_ergod*rnorm(d_star)+(1+.$mcmc$lambda[ii])*gamma*sum((.$mcmc$current_state[a,A]-.$mcmc$current_state[b,A]),dim=1)
       
          # compute proposal of ii-th chain
-         .$dataf$pars[ii,1:.$mcmc$d] <- .$mcmc$current_state[ii,1:.$mcmc$d] + .$mcmc$jump[ii,1:.$mcmc$d]
+         #.$dataf$pars[ii,1:.$mcmc$d] <- .$mcmc$current_state[ii,1:.$mcmc$d] + .$mcmc$jump[ii,1:.$mcmc$d]
 
-# this chunk is a repeat of DE-MC code
+         # this chunk is a repeat of DE-MC code
          
          # more boundardy handling
-         for (jj in 1:.$mcmc$d) {
+         #for (jj in 1:.$mcmc$d) {
            # boundary handling for minumum
-           if (.$dataf$pars[ii,jj] < minn[jj]) {
-             .$dataf$pars[ii,jj] <- minn[jj]
-           } 
+           #if (.$dataf$pars[ii,jj] < minn[jj]) {
+             #.$dataf$pars[ii,jj] <- minn[jj]
+           #} 
            # boundary handling for maximum
-           if (.$dataf$pars[ii,jj] > maxn[jj]) {
-             .$dataf$pars[ii,jj] <- maxn[jj]
-           } 
-         }
+           #if (.$dataf$pars[ii,jj] > maxn[jj]) {
+             #.$dataf$pars[ii,jj] <- maxn[jj]
+           #} 
+         #}
 
-      }
+      #}
 
-    } 
+    #} 
 
-    proposal_accept_dream <- function(.,j,lklihood) {
+    #proposal_accept_dream <- function(.,j,lklihood) {
 
       # likelihood of current state
-      .$mcmc$p_state[] <- .$dataf$pars_lklihood[ ,j] 
+      #.$mcmc$p_state[] <- .$dataf$pars_lklihood[ ,j] 
 
-      for (qq in 1:.$dataf$lp) {
+      #for (qq in 1:.$dataf$lp) {
 
         # compute Metropolis acceptance probability
-        alpha <- min(1,exp(lklihood[qq]-.$mcmc$p_state[qq]))
+        #alpha <- min(1,exp(lklihood[qq]-.$mcmc$p_state[qq]))
 
-# I feel like this block of code is clunky; is there a way to make it better?
+        # I feel like this block of code is clunky; is there a way to make it better?
       
         # determine if p_acc is larger than random number drawn from uniform distribution on interval [0,1]
-        if (alpha > runif(1,min=0,max=1)) {
+        #if (alpha > runif(1,min=0,max=1)) {
           # if true, accept the proposal
-          accept <- TRUE
-          .$mcmc$current_state[qq,1:.$mcmc$d] <- .$dataf$pars[qq,1:.$mcmc$d]
-          .$mcmc$p_state[qq] <- lklihood[qq]
+          # accept <- TRUE
+          #.$mcmc$current_state[qq,1:.$mcmc$d] <- .$dataf$pars[qq,1:.$mcmc$d]
+          #.$mcmc$p_state[qq] <- lklihood[qq]
           # append accepted current_state and probability density to storage data frames
-          .$dataf$pars_array[qq,1:.$mcmc$d,j+1] <- .$mcmc$current_state[qq,1:.$mcmc$d]
-          .$dataf$pars_lklihood[qq,j+1] <- .$mcmc$p_state[qq]
-        } else {
-          accept <- FALSE
+          #.$dataf$pars_array[qq,1:.$mcmc$d,j+1] <- .$mcmc$current_state[qq,1:.$mcmc$d]
+          #.$dataf$pars_lklihood[qq,j+1] <- .$mcmc$p_state[qq]
+        #} else {
+          #accept <- FALSE
           # set jump back to zero for p_CR
-          .$mcmc$jump[qq,1:.$mcmc$d] <- 0
+          #.$mcmc$jump[qq,1:.$mcmc$d] <- 0
           # repeat previous current_state and probability density in storage data frames
-          .$dataf$pars_array[qq,1:.$mcmc$d,j+1] <- .$dataf$pars_array[qq,1:.$mcmc$d,j]
-          .$dataf$pars_lklihood[qq,j+1] <- .$dataf$pars_lklihood[qq,j]
-        }
+          #.$dataf$pars_array[qq,1:.$mcmc$d,j+1] <- .$dataf$pars_array[qq,1:.$mcmc$d,j]
+          #.$dataf$pars_lklihood[qq,j+1] <- .$dataf$pars_lklihood[qq,j]
+        #}
  
         # update jump distance crossover index
-        .$mcmc$J[.$mcmc$id] <- .$mcmc$J[.$mcmc$id]+sum((.$mcmc$jump[qq,1:.$mcmc$d]/.$mcmc$std_state)^2)
+        #.$mcmc$J[.$mcmc$id] <- .$mcmc$J[.$mcmc$id]+sum((.$mcmc$jump[qq,1:.$mcmc$d]/.$mcmc$std_state)^2)
 
         # number of times index crossover is used
-        .$mcmc$n_id[.$mcmc$id] <- .$mcmc$n_id[.$mcmc$id]+1
+        #.$mcmc$n_id[.$mcmc$id] <- .$mcmc$n_id[.$mcmc$id]+1
 
-# this chunck is a reapeat of DE-MC code
+        # this chunck is a reapeat of DE-MC code
 
-        out_n <- .$wpars$mcmc_maxiter/2
-        if (j > out_n) 
-          .$dataf$out_mcmc[qq,,(j-out_n)] <- if(accept | j==out_n+1) .$dataf$out[qq,] else .$dataf$out_mcmc[qq,,(j-out_n-1)]  
+        #out_n <- .$wpars$mcmc_maxiter/2
+        #if (j > out_n) 
+          #.$dataf$out_mcmc[qq,,(j-out_n)] <- if(accept | j==out_n+1) .$dataf$out[qq,] else .$dataf$out_mcmc[qq,,(j-out_n-1)]  
 
-      }
+      #}
     
       # update selection probability of crossover
       # altered original algorithm here to account for numerical issues
-      if ((j<(.$wpars$mcmc_maxiter/10))&(sum(.$mcmc$J)>0)) {
-        .$mcmc$p_CR <- .$mcmc$J / .$mcmc$n_id
-        .$mcmc$p_CR <- .$mcmc$p_CR / sum(.$mcmc$p_CR)
-      }
+      #if ((j<(.$wpars$mcmc_maxiter/10))&(sum(.$mcmc$J)>0)) {
+        #.$mcmc$p_CR <- .$mcmc$J / .$mcmc$n_id
+        #.$mcmc$p_CR <- .$mcmc$p_CR / sum(.$mcmc$p_CR)
+      #}
 
-    }
+    #}
  
     # subprogram for detection and correction of outlier chains
-    outlier_check <- function(.) {
-    }
+    #outlier_check <- function(.) {
+    #}
 
     # test for convergence using the R-statistic convergence diagnostic of Gelman and Rubin  
-    chain_convergence <- function(.) {
-    }    
+    #chain_convergence <- function(.) {
+    #}    
 
 ######################################################################################################################################################
 
