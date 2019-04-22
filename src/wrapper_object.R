@@ -1915,7 +1915,8 @@ wrapper_object <-
       .$wpars$mcmc_chains   <- mcmc_chains   # MCMC number of chains 
       .$wpars$mcmc_homosced <- mcmc_homosced # MCMC homoscedastic error
       .$wpars$mcmc_maxiter  <- mcmc_maxiter  # MCMC max number of steps / iterations on each chain 
-      .$fnames$proposal_lklihood <- 'f_proposal_lklihood_ssquared_se'  # MCMC likelihood function 
+      .$fnames$proposal_lklihood <- 'f_proposal_lklihood_ssquared'  # MCMC likelihood function 
+       #.$fnames$proposal_lklihood <- 'f_proposal_lklihood_mean_bnd'  # MCMC likelihood function 
       .$wpars$unit_testing  <- T             # tell the wrapper unit testing is happening - bypasses the model init function (need to write a separate unit test to test just the init functions) 
 
       # set problem specific parameters

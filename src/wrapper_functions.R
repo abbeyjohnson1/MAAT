@@ -60,6 +60,68 @@ f_proposal_lklihood_ssquared_se <- function(.) {
   -(obs_n/2)*log(2*pi) - sum(log(obsse)) - 0.5*SSR
 } 
 
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
+# likelihood function that forces mean error to be a lower bound
+# standard error probability density function with iid error residuals
+f_proposal_lklihood_mean_bnd <- function(.) {
+  # number of measured data points
+  obs_n <- length(.$dataf$obs) 
+
+  # calculate error residual 
+  # - each chain is on rows of dataf$out take transpose
+  error_residual <- t(.$dataf$out) - .$dataf$obs
+
+  # mean of error residuals
+  mean_err <- mean(error_residual)
+
+  # force mean error to be a lower bound for all components of residual matrix  
+  indx <- which(error_residual < mean_err)
+  error_residual[indx] <- mean_err
+
+  # calculate sum of squared error
+  # - error_residual_matrix now has chains on columns 
+  SSR <- apply(error_residual, 2, function(v) sum(v^2) )
+
+  # return log-likelihood vector corresponding to each chain/row in .$dataf$pars matrix 
+  -(obs_n/2)*log(SSR)
+}
+
+# likelihood function that forces mean error to be a lower bound
+# standard error probability density function with iid error residuals
+# this function incorporates measurement errors
+f_proposal_lklihood_mean_bnd_se <- function(.) {
+  # read in measurement error and remove zeros from measurement error  
+  sspos <- which(.$dataf$obsse > 1e-9)
+
+  # number of measured data points (that do not have zero uncertainty)
+  obs_n <- length(sspos)
+
+  # homoscedastic error: uses mean value of measurement errors
+  # heteroscedastic error: doesn't use mean value of measurement error
+
+# maybe the problem is that error residuals are not iid?
+
+# do I impose a lower bound on the observed/measurement error?????  
+
+  # observed error
+  obsse <- if(.$wpars$mcmc_homosced)   rep(mean(.$dataf$obsse[sspos]), obs_n)
+           else                .$dataf$obsse[sspos]
+  
+  # calculate error residual (each chain is on rows of dataf$out, take transpose)
+  error_residual_matrix <- ( t(.$dataf$out)[sspos,] - .$dataf$obs[sspos] ) / obsse
+  
+# and/or do I impose a lower bound on the error residual matrix????? 
+# and/or do I impose a lower bound on (model_output - observed_data)??????
+
+  # calculate sum of squared error
+  SSR <- apply(error_residual_matrix, 2, function(v) sum(v^2))
+ 
+  # derive log density   
+  # return log-likelihood vector corresponding to each chain/row in .$dataf$pars matrix
+  -(obs_n/2)*log(2*pi) - sum(log(obsse)) - 0.5*SSR
+}
+
+#<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 ### END ###
