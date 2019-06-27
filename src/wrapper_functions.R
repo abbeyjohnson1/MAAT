@@ -8,30 +8,32 @@
 
 
 
-# set seed functions
+# debug: set seed functions
 ################################
 
-# setting the seed to reproduce sequences of quasi-random numbers
+# debug: setting the seed to reproduce sequences of quasi-random numbers
+# debug: for the 3 instances of random number generation in DE-MC algorithm
 
 # (1) set the seed for uniform_r generation
-set_seed1 <- function(.) {
-  set.seed(1703)
-  .$mcmc$uniform_r_seed <- matrix(data = 0, nrow = .$wpars$mcmc_maxiter, ncol = .$dataf$lp)
-  .$mcmc$uniform_r_seed[] <- runif((.$wpars$mcmc_maxiter * .$dataf$lp), min = -0.01, max = 0.01)
-}
+# set_seed1 <- function(.) {
+#   set.seed(1703)
+#   .$mcmc$uniform_r_seed <- matrix(data = 0, nrow = .$wpars$mcmc_maxiter, ncol = .$dataf$lp)
+#   .$mcmc$uniform_r_seed[] <- runif((.$wpars$mcmc_maxiter * .$dataf$lp), min = -0.01, max = 0.01)
+# }
 
 # (2) set the seed for R1 and R2 general_functions
-set_seed2 <- function(.) {
-  set.seed(4050)
-}
-
+# set_seed2 <- function(.) {
+#  set.seed(4050)
+# }
 
 # (3) set the seed for runif(1) value chosen in accept/reject step
-set_seed3 <- function(.) {
-  set.seed(1337)
-  .$mcmc$runif_seed <- matrix(data = 0, nrow = .$wpars$mcmc_maxiter, ncol = .$dataf$lp)
-  .$mcmc$runif_seed[] <- runif((.$wpars$mcmc_maxiter * .$dataf$lp), min = 0, max = 1)
-}
+# set_seed3 <- function(.) {
+#   set.seed(1337)
+#   .$mcmc$runif_seed <- matrix(data = 0, nrow = .$wpars$mcmc_maxiter, ncol = .$dataf$lp)
+#   .$mcmc$runif_seed[] <- runif((.$wpars$mcmc_maxiter * .$dataf$lp), min = 0, max = 1)
+# }
+
+
 
 # MCMC functions
 ################################
@@ -60,111 +62,77 @@ boundary_handling <- function(., ii, jj ) {
 
 # generate proposal using DE-MC algorithm
 proposal_generate_demc <- function(., j ) {
+  # print('Proposal Generate DE-MC Subroutine')
 
-  # Metropolis sampling
   # scaling factor
   d <- ncol(.$dataf$pars)
   gamma_star <- 2.38 / sqrt(d + d)
+
   # b-value should be small compared to width of target distribution
-  # APW: does this b parameter have a name?
-  # ALJ: regrettably, there is no name for "b" that I have been able to find
-  # ALJ: specifies range for "randomization" value added to proposal being generated
+  # b-value specifies range for "randomization" value added to proposal being generated
   b_rand  <- 0.01
-  # ALJ: made uniform_r a vector and pulled it outside for-loop
-  # draw vector of random numbers from uniform distribution on interval (-b_rand, b_rand)
-  # uniform_r <- runif(d,min=(-b_rand),max=b_rand)
-  # ALJ: NEED TO TRY creating uniform_r as just a randomly drawn scalar value
-  # temporarily hardcode uniform_r
-  # uniform_r <- rep(-0.000378, d)
-  # ALJ: like below is how uniform_r is in the original r-script
-  # uniform_r <- runif(1,min=(-b_rand),max=b_rand)
-
-  # (1) set the seed for uniform_r generation
-  # uniform_r <- .$mcmc$uniform_r_seed[j, ii]
-  # uniform_r <- .$mcmc$uniform_r_seed[j, 1:.$dataf$lp]
-  # uniform_r <- rep(.$mcmc$uniform_r_seed[j, ii], d)
-
-  # print("uniform_r = ")
-  # print(uniform_r)
-
-  # ALJ: NEED TO TRY moving R1 and R2 iniitalization to 0 inside the for-loop
-  # ALJ: index for 1st randomly chosen chain used in proposal generation
-  # R1 <- 0
-  # ALJ: index for 2nd randomly chosen chain used in proposal generation
-  # R2 <- 0
 
   # evaluate for each chain
   for (ii in 1:.$dataf$lp) {
 
-    # (1) set the seed for uniform_r generation
-    uniform_r <- rep(.$mcmc$uniform_r_seed[j, ii], d)
+    # debug: temporarily hardcode uniform_r
+    # uniform_r <- -0.000378
 
-    # randomly select two different numbers R1 and R2 unequal to j
-    # from a uniform distribution without replacement
+    # debug: (1) set the seed for uniform_r generation
+    # uniform_r <- .$mcmc$uniform_r_seed[j, ii]
+
+    # debug: moved uniform_r inside of for-loop
+    # debug: made uniform_r scalar, instead of d-length vector
+    # draw vector of random numbers from uniform distribution on interval (-b_rand, b_rand)
+    uniform_r <- runif(1, min = -b_rand, max = b_rand)
+
+    # print("uniform_r = ")
+    # print(uniform_r)
+
+    # debug: moved R1 <- 0 and R2 <- 0 inside of for-loop
+
+    # index for 1st randomly chosen chain used in proposal generation
     R1 <- 0
+    # index for 2nd randomly chosen chain used in proposal generation
     R2 <- 0
 
-    while ((R1 == 0) | (R1 == ii))               R1 <- ceiling(runif(1,min=0,max=1)*.$dataf$lp)
-    while ((R2 == 0) | (R2 == ii) | (R2 == R1))  R2 <- ceiling(runif(1,min=0,max=1)*.$dataf$lp)
+    # randomly select two different numbers R1 and R2 unequal to j
+    # from uniform distribution without replacement
+    while ((R1 == 0) | (R1 == ii))               R1 <- ceiling(runif(1, min = 0, max = 1) * .$dataf$lp)
+    while ((R2 == 0) | (R2 == ii) | (R2 == R1))  R2 <- ceiling(runif(1, min = 0, max = 1) * .$dataf$lp)
 
-    # temporarily hardcode R1 and R2
+    # debug: temporarily hardcode R1 and R2
     # R1 <- 6
     # R2 <- 5
 
     # print(paste0('<<<< iteration = ', j, ', chain = ', ii, ' <<<<'))
 
-    #print('.$dataf$pars_array = ')
-    #print(.$dataf$pars_array)
-
-    #print(paste0('dim of .$dataf$pars_array = ', dim(.$dataf$pars_array)))
-
-    #print(paste0('dim of .$dataf$pars = ', dim(.$dataf$pars)))
-
-    #print(paste0('j = ', j))
-
     # print(paste0("R1 = ", R1, ", R2 = ", R2))
 
-    # store R1 and R2 values that were generated
-    .$dataf$R1_R2_storage[ii, 1, j] <- R1
-    .$dataf$R1_R2_storage[ii, 2, j] <- R2
+    # debug: store R1 and R2 values that were generated
+    # .$dataf$R1_R2_storage[ii, 1, j] <- R1
+    # .$dataf$R1_R2_storage[ii, 2, j] <- R2
 
     # evaluate for each parameter
     for (jj in 1:d) {
 
-      #print(paste0('iteration = ', j, ', chain = ', ii))
-      #print(paste0("R1 = ", R1, ", R2 = ", R2))
-
       # generate proposal via Differential Evolution
+      .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii, jj, j-1] + gamma_star * (.$dataf$pars_array[R1, jj, j-1] - .$dataf$pars_array[R2, jj, j-1]) + uniform_r
 
-      # restructure this a bit for setting the seed
-      # .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii,jj,j-1] + gamma_star * (.$dataf$pars_array[R1,jj,j-1] - .$dataf$pars_array[R2,jj,j-1]) + uniform_r[j]
-
-      # this one below is the original
-      # .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii,jj,j-1] + gamma_star * (.$dataf$pars_array[R1,jj,j-1] - .$dataf$pars_array[R2,jj,j-1]) + uniform_r[jj]
-
-      # print out everything for debugging
-      jump <- gamma_star * (.$dataf$pars_array[R1,jj,j-1] - .$dataf$pars_array[R2,jj,j-1]) + uniform_r[jj]
-      .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii,jj,j-1] + jump
-
-      # store uniform_r value to check that set.seed() code is functioning
-      .$dataf$uniform_r_storage[ii, jj, j] <- uniform_r[jj]
-
-      # print(paste0('ii = ', ii))
-      # print(paste0('jj = ', jj))
-      # print(paste0('j = ', j))
-      # print(paste0('gamma_star = ', gamma_star))
-      # print(paste0('uniform_r[jj] = ', uniform_r[jj]))
+      # debug: break up proposal generation; create separate "jump" differential value
+      # jump <- gamma_star * (.$dataf$pars_array[R1,jj,j-1] - .$dataf$pars_array[R2,jj,j-1]) + uniform_r
       # print(paste0('jump = ', jump))
+      # debug: generate proposal by adding "jump" to current location
+      # .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii,jj,j-1] + jump
+
+      # debug: store uniform_r value being generated
+      # .$dataf$uniform_r_storage[ii, jj, j] <- uniform_r
+
       # print(paste0('.$dataf$pars_array[R1, jj, j-1] = ', .$dataf$pars_array[R1, jj, j-1]))
       # print(paste0('.$dataf$pars_array[R2, jj, j-1] = ', .$dataf$pars_array[R2, jj, j-1]))
       # print(paste0('.$dataf$pars_array[ii, jj, j-1] = ', .$dataf$pars_array[ii, jj, j-1]))
-      # print(paste0('.$dataf$pars[ii, jj] = ', .$dataf$pars[ii, jj]))
 
-
-      # .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii,jj,j-1] + gamma_star * (.$dataf$pars_array[R1,jj,j-1] - .$dataf$pars_array[R2,jj,j-1]) + uniform_r
-
-      #print(paste0('uniform_r = ', uniform_r[jj]))
-
+      # debug: boundary handling temporarily commented out
       # call boundary handling function
       # boundary_handling(., ii, jj )
     }
@@ -172,135 +140,103 @@ proposal_generate_demc <- function(., j ) {
     # print('proposal generated = ')
     # print(.$dataf$pars[ii, ])
 
-    # store proposals being generated (regardless of whether or not they are being accepted)
-    .$dataf$prop_storage[ii, 1:d, j] <- .$dataf$pars[ii, 1:d]
-
+    # debug: store proposals being generated (regardless of whether or not they are being accepted)
+    # .$dataf$prop_storage[ii, 1:d, j] <- .$dataf$pars[ii, 1:d]
   }
 
-  if (j == .$wpars$mcmc_maxiter) {
-    # print statements for de-bugging
+  # debug: at end of MAAT simulation, print arrays storing everything
+  # if (j == .$wpars$mcmc_maxiter) {
     # print('array of proposals that were generated = ')
     # print(.$dataf$prop_storage)
     # print('uniform_r values (randomly generated) = ')
     # print(.$dataf$uniform_r_storage)
     # print('R1 (1st col.) and R2 (2nd col.) values (randomly generated) = ')
     # print(.$dataf$R1_R2_storage)
-  }
-
+  # }
 }
 
 
 # calculate proposal acceptance using the Metropolis ratio (for DE-MC algorithm)
 proposal_accept_demc <- function(., j, lklihood ) {
+  # print('Proposal Accept DE-MC Subroutine')
 
   # Metropolis ratio
   metrop_ratio <- exp(lklihood - .$dataf$pars_lklihood[ ,j-1])
 
-  .$dataf$metrop_ratio_storage[1:.$wpars$mcmc_chains, 1, j] <- t(metrop_ratio)
+  # debug: store Metropolis ratio
+  # .$dataf$metrop_ratio_storage[1:.$wpars$mcmc_chains, 1, j] <- t(metrop_ratio)
 
   # print(paste0('likelihood of proposal = ', lklihood))
   # print(paste0('likelihood of current chain = ', .$dataf$pars_lklihood[ ,j-1]))
-
-  # print(paste0('dim of .$dataf$pars_lklihood ' = dim(.$dataf$pars_lklihood)))
-
   # print(paste0('Metropolis ratio = ', metrop_ratio))
-  # print(length(metrop_ratio))
 
   alpha        <- pmin(1, metrop_ratio)
 
-  .$dataf$alpha_storage[1:.$wpars$mcmc_chains, 1, j] <- t(alpha)
-
-  # ALJ: maybe try computing alpha this way (more numerically comprehensive)
-  # ALJ: if this change needs to be made, make the code prettier
-  #alpha <- numeric(.$dataf$lp)
-  #for (q in 1:.$dataf$lp) {
-  #  if (.$dataf$pars_lklihood[q, j-1] > 0) {
-  #    alpha[q] <- min(1, metrop_ratio[q])
-  #  } else {
-  #    alpha[q] <- 1
-  #  }
-  # }
+  # debug: store computed alpha value
+  # .$dataf$alpha_storage[1:.$wpars$mcmc_chains, 1, j] <- t(alpha)
 
   # print('alpha = ')
   # print(alpha)
 
-  # (3) set the seed for runif(1) value chosen in accept/reject step
-  # runif_val <- .$mcmc$runif_seed[j, ii]
-  runif_val <- .$mcmc$runif_seed[j, 1:.$dataf$lp]
+  # debug: (3) set the seed for runif(1) value chosen in accept/reject step
+  # runif_val <- .$mcmc$runif_seed[j, 1:.$dataf$lp]
+
+  # debug: store runif_value being generated to check that set.seed code is functioning
+  # .$dataf$runif_val_storage[1:.$wpars$mcmc_chains, 1, j] <- t(runif_val)
+
   # print('runif_val = ')
   # print(runif_val)
 
-  .$dataf$runif_val_storage[1:.$wpars$mcmc_chains, 1, j] <- t(runif_val)
-
-  # print(paste0('length of alpha = ', length(alpha)))
-  # print(paste0('type of alpha = ', typeof(alpha)))
-  # print(paste0('length of runif_val = ', length(runif_val)))
-  # print(paste0('type of runif_val = ', typeof(runif_val)))
-
   # evaluate for each chain
-  # APW: change this iteration counter to ii for consistency
-  # ALJ: changed kk to ii
   for(ii in 1:.$dataf$lp) {
 
     # print(paste0('<<<< iteration = ', j, ', chain = ', ii, ' <<<<'))
 
-    # ALJ: maybe try putting alpha here
-    #if (.$dataf$pars_lklihood[ ,j-1] > 0) {
-    #  alpha[ii] <- min(1, metrop_ratio)
-    #} else {
-    #  alpha[ii] <- 1
-    #}
-
-    # print(paste0(' new alpha = ', alpha))
-
     # accept if Metropolis ratio > random number from uniform distribution on interval (0,1)
     # APW: should this be inside or outside of the loop, ie could draw a random outside the loop
     # ALJ: put this outside for-loop and index accept
-    # accept <- log(alpha[ii]) > log(runif(1,min=0,max=1))
+    accept <- log(alpha[ii]) > log(runif(1, min = 0, max = 1))
 
-    # temporarily hard-code runif-value for debugging
+    # debug: temporarily hard-code runif-value
     # accept <- log(alpha[ii]) > log(0.843332)
 
-    # (3) set the seed for runif(1) value chosen in accept/reject step
-    accept <- log(alpha[ii]) > log(runif_val[ii])
+    # debug: (3) set the seed for runif(1) value chosen in accept/reject step
+    # accept <- log(alpha[ii]) > log(runif_val[ii])
+    # print(paste0('runif_val = ', runif_val[ii]))
 
-    .$dataf$accept_storage[ii, 1, j] <- accept
-
-    #print(paste0('runif_val = ', runif_val[ii]))
-
-    # print(paste0('length of accept = ', length(accept)))
-    # print('accept = ')
-    # print(accept)
+    # debug: print accept true/false value being generated
+    # .$dataf$accept_storage[ii, 1, j] <- accept
 
     # print(paste0('accept = ', accept))
 
-    .$dataf$pars_array[ii,,j]   <- if(accept) .$dataf$pars[ii,] else .$dataf$pars_array[ii,,j-1]
-    .$dataf$pars_lklihood[ii,j] <- if(accept) lklihood[ii]      else .$dataf$pars_lklihood[ii,j-1]
-    #print(c(ii, accept))
-    #print(c(.$dataf$pars_array[ii,,j], .$dataf$pars[ii,], .$dataf$pars_array[ii,,j-1] ))
+    .$dataf$pars_array[ii, , j]   <- if(accept) .$dataf$pars[ii, ]  else .$dataf$pars_array[ii, , j-1]
+    .$dataf$pars_lklihood[ii, j]  <- if(accept) lklihood[ii]        else .$dataf$pars_lklihood[ii, j-1]
 
-    # ALJ: temporarily getting rid of burn-in for debugging purposes
+    # ALJ: note that this is NOT effectively burn-in
     # out_n <- .$wpars$mcmc_maxiter/2
+    # debug: temporarily set out_n <- 0
+    # ALJ: side note is that I think that using 0 fixes the issue where MCMC MAAT simulations have to be
+    #      run for an even number of iterations
     out_n <- 0
     if (j > out_n)
-      .$dataf$out_mcmc[ii,,(j-out_n)] <- if(accept | j==out_n+1) .$dataf$out[ii,] else .$dataf$out_mcmc[ii,,(j-out_n-1)]
-# APW: not a huge deal, but this is not quite right in the case where j==out_n+1 but not accepted as it adds the output from the rejected proposal
-#    if ((j+1) > out_n)
-#      .$dataf$out_mcmc[ii,,(j+1-out_n)] <- if(accept | j==out_n+1) .$dataf$out[ii,] else .$dataf$out_mcmc[ii,,(j-out_n-1)]
+      .$dataf$out_mcmc[ii, ,(j-out_n)] <- if(accept | j == out_n + 1) .$dataf$out[ii, ] else .$dataf$out_mcmc[ii, , (j-out_n-1)]
+    # APW: not a huge deal, but this is not quite right in the case where j==out_n+1 but not accepted as it adds the output from the rejected proposal
+    # if ((j+1) > out_n)
+      # .$dataf$out_mcmc[ii,,(j+1-out_n)] <- if(accept | j==out_n+1) .$dataf$out[ii,] else .$dataf$out_mcmc[ii,,(j-out_n-1)]
   }
 
-  if (j == .$wpars$mcmc_maxiter) {
+  # debug: at end of MAAT simulation, print arrays storing everything
+  # if (j == .$wpars$mcmc_maxiter) {
     # print statements for debugging
     # print('Metropolis ratio = ')
     # print(.$dataf$metrop_ratio_storage)
     # print('alpha = ')
     # print(.$dataf$alpha_storage)
-    # print('randomly generated runif_val = ')
+    # print('runif_val = ')
     # print(.$dataf$runif_val_storage)
-    # print('accept/reject values (1 = TRUE and 0 = FALSE) = ')
+    # print('accept/reject values (1 = 'true' and 0 = 'false') = ')
     # print(.$dataf$accept_storage)
-  }
-
+  # }
 }
 
 
