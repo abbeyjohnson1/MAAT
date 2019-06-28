@@ -127,53 +127,34 @@ wrapper_object <-
           n <- .$wpars$mcmc_chains
           .$dynamic$pars <- lapply(.$dynamic$pars_eval, function(cs) eval(parse(text=cs)) )
 
-          # ALJ: this is where priors are generated
-          #print(paste0('you are here: n = ',n))
-          #print('.$dynamic$pars_eval = ')
-          #print(.$dynamic$pars_eval)
-          #print('.$dynamic$pars = ')
-          #print(.$dynamic$pars)
           # create pars / proposal matrix
           .$dataf$pars   <- do.call(cbind, .$dynamic$pars )
-          # print('.$dynamic$pars = ')
-          # print(.$dynamic$pars)
-          # print('the old .$dataf$pars = ')
+
+          # debug: hard-code initial proposals derived from prior distribution, uniform(min = -10, max = 10)
+          # prop1 <- c(7.631916, -5.999289, -5.734941, 1.769624, -1.128974, -1.065893, 9.091345, -9.570053)
+          # prop2 <- c(-8.955127, -2.165650, 8.288627, 8.335986, -9.420836, -6.112619, -4.796342, 8.128561)
+          # prop3 <- c(-2.757425, -1.311214, -9.983908, -6.061901, -3.076935, 8.934289, -3.041526, -7.045019)
+          # prop4 <- c(-1.34255731, 9.40670570, -0.04198163, -9.75718401, -0.40205049, -4.26300878, 6.56454083, -0.24169656)
+          # .$dataf$pars <- cbind(prop1, prop2, prop3, prop4)
+          # colnames(.$dataf$pars) <- paste0('mcmc_test.proposal', 1:4)
+
+          # print('model parameters and algorithmic parameters:')
+          # print(.$dynamic$pars_eval)
+          # print(.$model$pars)
+          # print(.$wpars)
+
+          # print("initial propopsals derived from priors = ")
           # print(.$dataf$pars)
-          #prop1 <- c(-3.025713, -10.229722, 12.641141, -17.417058, 14.566888, -18.288043, -14.322998, -12.046245)
-          #prop2 <- c(-12.352044, -3.408665, -16.810229, 13.432576, 13.417450, 3.343700, 11.389111, 16.566423)
-          #prop3 <- c(-9.094940, 8.740721, 19.675105, -12.056877, 4.474560, 7.950890, -2.869459, -19.069999)
-          #prop4 <- c(19.85179440, -13.19979593, 5.96230085, 1.71096734, -2.76975878, 0.05153623, 10.6824132, -10.56140135)
-          prop1 <- c(7.631916, -5.999289, -5.734941, 1.769624, -1.128974, -1.065893, 9.091345, -9.570053)
-          prop2 <- c(-8.955127, -2.165650, 8.288627, 8.335986, -9.420836, -6.112619, -4.796342, 8.128561)
-          prop3 <- c(-2.757425, -1.311214, -9.983908, -6.061901, -3.076935, 8.934289, -3.041526, -7.045019)
-          prop4 <- c(-1.34255731, 9.40670570, -0.04198163, -9.75718401, -0.40205049, -4.26300878, 6.56454083, -0.24169656)
-          .$dataf$pars <- cbind(prop1, prop2, prop3, prop4)
-          # ALJ: not sure if this is the best place to hardcode the initial "iteration/proposal" generated from prior distirbution???
-          #print('model parameters and algorithmic parameters')
-          #print(.$dynamic$pars_eval)
-          #print(.$model$pars)
-          #print(.$wpars)
-          #print('')
-          #print('hard-coded .$dataf$pars = ')
-          #print(.$dataf$pars)
-          #print('')
-          colnames(.$dataf$pars) <- paste0('mcmc_test.proposal', 1:4)
-          # print(">>> OUTPUT STARTS HERE >>>")
-          print("initial propopsals derived from priors = ")
-          print(.$dataf$pars)
 
-	        # create proposal storage array (store all proposals, not just accepted ones)
-          # this is not necessary for output; just used for debugging
-	        .$dataf$prop_storage  <- array(1, dim=c(dim(.$dataf$pars), .$wpars$mcmc_maxiter) )
-
-          # preallocate space for all debugging arrays (i.e., easier to read print statements)
-          .$dataf$accept_storage <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
-          .$dataf$uniform_r_storage <- array(1, dim = c(dim(.$dataf$pars), .$wpars$mcmc_maxiter))
-          .$dataf$model_eval_storage <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
-          .$dataf$alpha_storage <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
-          .$dataf$R1_R2_storage <- array(1, dim = c(.$wpars$mcmc_chains, 2, .$wpars$mcmc_maxiter))
-          .$dataf$metrop_ratio_storage <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
-          .$dataf$runif_val_storage <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
+          # debug: preallocate space for all debugging arrays (easier way to read print statements)
+          # .$dataf$prop_storage            <- array(1, dim=c(dim(.$dataf$pars), .$wpars$mcmc_maxiter) )
+          # .$dataf$accept_storage          <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
+          # .$dataf$uniform_r_storage       <- array(1, dim = c(dim(.$dataf$pars), .$wpars$mcmc_maxiter))
+          # .$dataf$model_eval_storage      <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
+          # .$dataf$alpha_storage           <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
+          # .$dataf$R1_R2_storage           <- array(1, dim = c(.$wpars$mcmc_chains, 2, .$wpars$mcmc_maxiter))
+          # .$dataf$metrop_ratio_storage    <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
+          # .$dataf$runif_val_storage       <- array(1, dim = c(.$wpars$mcmc_chains, 1, .$wpars$mcmc_maxiter))
 
           # create accepted proposal array
           .$dataf$pars_array    <- array(1, dim=c(dim(.$dataf$pars),.$wpars$mcmc_maxiter) )
@@ -248,7 +229,7 @@ wrapper_object <-
           oss  <- seq(1, dim(.$dataf$metdata)[1], thin )
           .$dataf$met   <- .$dataf$met[oss,]
           .$dataf$obs   <- .$dataf$obs[oss]
-          #.$dataf$obsse <- .$dataf$obsse[oss]
+          # .$dataf$obsse <- .$dataf$obsse[oss]
           .$dataf$lm    <- dim(.$dataf$met)[1]
         }
 
@@ -259,7 +240,7 @@ wrapper_object <-
         # APW: is this effectively assuming a burn-in of 50 %?
         #      if so we need to align with the burn-in input parameters
         # .$dataf$out_mcmc <- array(0, dim=c(.$dataf$lp, .$dataf$lm, (.$wpars$mcmc_maxiter/2)))
-        # ALJ: getting rid of burn-in for debugging purposes
+        # debug: store all of the model output, not just the last 50%
         .$dataf$out_mcmc <- array(0, dim=c(.$dataf$lp, .$dataf$lm, .$wpars$mcmc_maxiter))
 
 	      # call run function
@@ -416,11 +397,11 @@ wrapper_object <-
       if(!is.null(.$dataf$fnames)) .$model$configure(vlist='fnames', df=.$dataf$fnames[i,], F )
       if(.$wpars$cverbose)         .$printc('fnames', .$dataf$fnames[i,] )
 
+      # debug: temporarily comment out boundary handling
       # placeholder for setting boundary handling limits
-  #    boundary_handling_set(.)
+      # boundary_handling_set(.)
 
       # evaluate model over initial proposals derived from prior
-      #print(do.call('rbind',lapply(1:.$dataf$lp, .$runp_mcmc )))
       .$dataf$out[]  <-
         do.call( 'rbind', {
             if(.$wpars$multic) mclapply(1:.$dataf$lp, .$runp_mcmc, mc.cores=min(.$wpars$procs,.$dataf$lp), mc.preschedule=T  )
@@ -431,22 +412,8 @@ wrapper_object <-
       .$dataf$pars_array[,,1]   <- .$dataf$pars
       .$dataf$pars_lklihood[,1] <- get(.$fnames$proposal_lklihood)(.)
 
-      #print(paste0('i = ', i))
-      #print('inital model evaluation = ')
-      #print(.$dataf$pars)
-      #print(.$dataf$pars_array[ , , 1])
-      #print('likelihood of initial model evaluation = ')
-      #print(.$dataf$pars_lklihood[,1])
-      #print('You are here!')
-      #print('.$dataf$pars_array = ')
-      #print(.$dataf$pars_array[ , , 1])
-      #print(.$dataf$pars_array)
-      #print('.$dataf$pars_lklihood = ')
-      #print(.$dataf$pars_lklihood[ ,1])
-      #print(.$dataf$pars_lklihood)
-
-      # add to proposal storage array
-      .$dataf$prop_storage[,,1] <- .$dataf$pars
+      # debug: add to proposal storage array
+      # .$dataf$prop_storage[,,1] <- .$dataf$pars
 
       # debug: (1) set the seed for uniform_r generation
       # .$set_seed1()
@@ -455,20 +422,20 @@ wrapper_object <-
       # .$set_seed3()
 
       # debug: (2) set the seed for R1 and R2 random draw
-      # calling this one last so it will be the seed when R1 and R2 are being drawn
+      # imporant to call this set.seed fxn last so it will be the seed when R1 and R2 are being drawn
       # .$set_seed2()
 
       # if DREAM MCMC, run static part of algorithm
       if(.$wpars$mcmc_type=='dream') .$static_dream()
 
       # run MCMC
-      #print(.$mcmc$p_CR)
-      #vapply(1:(.$wpars$mcmc_maxiter-1), .$run_mcmc, numeric(0) )
+      # vapply(1:(.$wpars$mcmc_maxiter-1), .$run_mcmc, numeric(0) )
       vapply(2:(.$wpars$mcmc_maxiter), .$run_mcmc, numeric(0) )
 
       # eventually: insert burn-in procedure here
       # BURN-IN: if convergence has not been reached, re-run MCMC
       # APW: need to align this with the above outut array specification
+      # ALJ: also need to align this with mcmc burn-in parameters
 
       # write output from MCMC
 
@@ -496,8 +463,6 @@ wrapper_object <-
       # calculate likelihood of proposals on each chain
       # likelihood function is independent of DE-MC or DREAM algorithms
       lklihood <- get(.$fnames$proposal_lklihood)(.)
-      # print('likelihood = ')
-      # print(lklihood)
 
       # accept / reject proposals on each chain
       get(paste0('proposal_accept_',.$wpars$mcmc_type))(., j=j, lklihood )
@@ -848,39 +813,38 @@ wrapper_object <-
     # with an associated length for input matrices
     dataf <- list(
       # variables matrices - created during runtime
-      fnames        = NULL,
-      fnamesB       = NULL,
-      pars          = NULL,
-      parsB         = NULL,
-      pars_lklihood = NULL,
-      pars_array    = NULL,
-      prop_storage  = NULL,
-      accept_storage = NULL,
-      uniform_r_storage = NULL,
-      model_eval_storage = NULL,
-      alpha_storage = NULL,
-      R1_R2_storage = NULL,
-      metrop_ratio_storage = NULL,
-      runif_val_storage = NULL,
-      env           = NULL,
-      met           = NULL,         # a dataframe of sequential meteorological driving data, for running the analysis at a particular site for example
+      fnames                = NULL,
+      fnamesB               = NULL,
+      pars                  = NULL,
+      parsB                 = NULL,
+      pars_lklihood         = NULL,
+      pars_array            = NULL,
+      # prop_storage          = NULL,
+      # accept_storage        = NULL,
+      # uniform_r_storage     = NULL,
+      # model_eval_storage    = NULL,
+      # alpha_storage         = NULL,
+      # R1_R2_storage         = NULL,
+      # metrop_ratio_storage  = NULL,
+      # runif_val_storage     = NULL,
+      env                   = NULL,
+      met                   = NULL,         # a dataframe of sequential meteorological driving data, for running the analysis at a particular site for example
       # row length of above matrices
-      lf            = NULL,
-      lfA           = NULL,
-      lfB           = NULL,
-      lp            = NULL,
-      lpB           = NULL,
-      le            = NULL,
-      lm            = NULL,
+      lf                    = NULL,
+      lfA                   = NULL,
+      lfB                   = NULL,
+      lp                    = NULL,
+      lpB                   = NULL,
+      le                    = NULL,
+      lm                    = NULL,
       # output matrices / arrays
-      mout          = NULL,         # example model output vector, for setting up vapply functions
-      out           = NULL,         # output matrix
-      out_mcmc      = NULL,         # output array
-      out_saltelli  = NULL,         # saltelli output list
+      mout                  = NULL,         # example model output vector, for setting up vapply functions
+      out                   = NULL,         # output matrix
+      out_mcmc              = NULL,         # output array
+      out_saltelli          = NULL,         # saltelli output list
       # observation matrices /dataframes
-      obs           = NULL,         # a vector/matrix of observations against which to valiadate/ calculate likelihood of model
-      obsse         = NULL          # a vector/matrix of observation errors for the obs data, must exactly match the above dataframe
-
+      obs                   = NULL,         # a vector/matrix of observations against which to valiadate/ calculate likelihood of model
+      obsse                 = NULL          # a vector/matrix of observation errors for the obs data, must exactly match the above dataframe
     )
 
     # parameters specific to the wrapper object
@@ -929,9 +893,9 @@ wrapper_object <-
       p_state       = numeric(),      # probability density of current state matrix
       std_state     = numeric(),      # standard deviation of each sampling dimension
       draw          = matrix(),       # permutation matrix
-      lambda        = matrix(),       # matrix of uniform random values between -c_rand and c_rand
-      uniform_r_seed= matrix(),       # debugging; setting seed for RNG
-      runif_seed    = matrix()        # debugging: setting seed for RNG
+      lambda        = matrix()       # matrix of uniform random values between -c_rand and c_rand
+      # uniform_r_seed= matrix(),       # debugging; setting seed for RNG
+      # runif_seed    = matrix()        # debugging: setting seed for RNG
     )
 
     fnames <- list(

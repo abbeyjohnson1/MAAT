@@ -471,9 +471,7 @@ proposal_accept_dream <- function(., j, lklihood) {
 # expects model output to be probability - as in the output from the mixture model
 f_proposal_lklihood_log <- function(.) {
   log(.$dataf$out)
-
   # print(paste0('model likelihood = ', log(.$dataf$out)))
-
   return(log(.$dataf$out))
 }
 
