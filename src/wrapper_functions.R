@@ -62,7 +62,7 @@ boundary_handling <- function(., ii, jj ) {
 
 # generate proposal using DE-MC algorithm
 proposal_generate_demc <- function(., j, k ) {
-  # print('Proposal Generate DE-MC Subroutine')
+  print('Proposal Generate DE-MC Subroutine')
 
   # scaling factor
   d <- ncol(.$dataf$pars)
@@ -144,6 +144,7 @@ proposal_generate_demc <- function(., j, k ) {
     }
 
     # print('proposal generated = ')
+    # print(.$dataf$pars[k, ])
     # print(.$dataf$pars[ii, ])
 
     # debug: store proposals being generated (regardless of whether or not they are being accepted)
@@ -164,22 +165,27 @@ proposal_generate_demc <- function(., j, k ) {
 
 # calculate proposal acceptance using the Metropolis ratio (for DE-MC algorithm)
 proposal_accept_demc <- function(., j, k, lklihood ) {
-  # print('Proposal Accept DE-MC Subroutine')
+  print('Proposal Accept DE-MC Subroutine')
 
   # Metropolis ratio
   # metrop_ratio <- exp(lklihood - .$dataf$pars_lklihood[ ,j-1])
 
-  metrop_ratio <- exp(lklihood - .$dataf$pars_lklihood[k, j-1])
+  # debug attempt
+  metrop_ratio <- exp(lklihood[k, 1] - .$dataf$pars_lklihood[k, j-1])
+
+  print(paste0('lklihood[k, 1] = ', lklihood[k, 1]))
+  print(paste0('.$dataf$pars_lklihood[k, j-1] = ', .$dataf$pars_lklihood[k, j-1]))
 
   # debug: store Metropolis ratio
   # .$dataf$metrop_ratio_storage[1:.$wpars$mcmc_chains, 1, j] <- t(metrop_ratio)
 
   # print(paste0('likelihood of proposal = ', lklihood))
   # print(paste0('likelihood of current chain = ', .$dataf$pars_lklihood[ ,j-1]))
-  # print(paste0('Metropolis ratio = ', metrop_ratio))
+  print(paste0('Metropolis ratio = ', metrop_ratio))
 
   # alpha        <- pmin(1, metrop_ratio)
 
+  # debug attempt
   alpha        <- min(1, metrop_ratio)
 
   # debug: store computed alpha value
@@ -200,7 +206,7 @@ proposal_accept_demc <- function(., j, k, lklihood ) {
   # evaluate for each chain
   # for(ii in 1:.$dataf$lp) {
 
-    # print(paste0('<<<< iteration = ', j, ', chain = ', ii, ' <<<<'))
+    # print(paste0('<<<< iteration = ', j, ', chain = ', ii, ' <<<< (proposal accept fxn)'))
     # print(paste0('<<<< iteration = ', j, ', chain = ', k, ' <<<< (proposal accept fxn)'))
 
     # accept if Metropolis ratio > random number from uniform distribution on interval (0,1)
@@ -208,6 +214,7 @@ proposal_accept_demc <- function(., j, k, lklihood ) {
     # ALJ: put this outside for-loop and index accept
     # accept <- log(alpha[ii]) > log(runif(1, min = 0, max = 1))
 
+    # debug attempt
     accept <- log(alpha) > log(runif(1, min = 0, max = 1))
 
     # debug: temporarily hard-code runif-value
@@ -225,6 +232,7 @@ proposal_accept_demc <- function(., j, k, lklihood ) {
     # .$dataf$pars_array[ii, , j]   <- if(accept) .$dataf$pars[ii, ]  else .$dataf$pars_array[ii, , j-1]
     # .$dataf$pars_lklihood[ii, j]  <- if(accept) lklihood[ii]        else .$dataf$pars_lklihood[ii, j-1]
 
+    # debug attempt
     .$dataf$pars_array[k, , j]   <- if(accept) .$dataf$pars[k, ]  else .$dataf$pars_array[k, , j-1]
     .$dataf$pars_lklihood[k, j]  <- if(accept) lklihood[k]        else .$dataf$pars_lklihood[k, j-1]
 
