@@ -61,7 +61,7 @@ boundary_handling <- function(., ii, jj ) {
 ################################
 
 # generate proposal using DE-MC algorithm
-proposal_generate_demc <- function(., j ) {
+proposal_generate_demc <- function(., j, k ) {
   # print('Proposal Generate DE-MC Subroutine')
 
   # scaling factor
@@ -73,7 +73,7 @@ proposal_generate_demc <- function(., j ) {
   b_rand  <- 0.01
 
   # evaluate for each chain
-  for (ii in 1:.$dataf$lp) {
+  # for (ii in 1:.$dataf$lp) {
 
     # debug: temporarily hardcode uniform_r
     # uniform_r <- -0.000378
@@ -98,14 +98,18 @@ proposal_generate_demc <- function(., j ) {
 
     # randomly select two different numbers R1 and R2 unequal to j
     # from uniform distribution without replacement
-    while ((R1 == 0) | (R1 == ii))               R1 <- ceiling(runif(1, min = 0, max = 1) * .$dataf$lp)
-    while ((R2 == 0) | (R2 == ii) | (R2 == R1))  R2 <- ceiling(runif(1, min = 0, max = 1) * .$dataf$lp)
+    # while ((R1 == 0) | (R1 == ii))               R1 <- ceiling(runif(1, min = 0, max = 1) * .$dataf$lp)
+    # while ((R2 == 0) | (R2 == ii) | (R2 == R1))  R2 <- ceiling(runif(1, min = 0, max = 1) * .$dataf$lp)
+
+    while ((R1 == 0) | (R1 == k))               R1 <- ceiling(runif(1, min = 0, max = 1) * .$dataf$lp)
+    while ((R2 == 0) | (R2 == k) | (R2 == R1))  R2 <- ceiling(runif(1, min = 0, max = 1) * .$dataf$lp)
 
     # debug: temporarily hardcode R1 and R2
     # R1 <- 6
     # R2 <- 5
 
     # print(paste0('<<<< iteration = ', j, ', chain = ', ii, ' <<<<'))
+    # print(paste0('<<<< iteration = ', j, ', chain = ', k, ' <<<< (proposal generate fxn)'))
 
     # print(paste0("R1 = ", R1, ", R2 = ", R2))
 
@@ -117,7 +121,9 @@ proposal_generate_demc <- function(., j ) {
     for (jj in 1:d) {
 
       # generate proposal via Differential Evolution
-      .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii, jj, j-1] + gamma_star * (.$dataf$pars_array[R1, jj, j-1] - .$dataf$pars_array[R2, jj, j-1]) + uniform_r
+      # .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii, jj, j-1] + gamma_star * (.$dataf$pars_array[R1, jj, j-1] - .$dataf$pars_array[R2, jj, j-1]) + uniform_r
+
+      .$dataf$pars[k, jj] <- .$dataf$pars_array[k, jj, j-1] + gamma_star * (.$dataf$pars_array[R1, jj, j-1] - .$dataf$pars_array[R2, jj, j-1]) + uniform_r
 
       # debug: break up proposal generation; create separate "jump" differential value
       # jump <- gamma_star * (.$dataf$pars_array[R1,jj,j-1] - .$dataf$pars_array[R2,jj,j-1]) + uniform_r
@@ -142,7 +148,7 @@ proposal_generate_demc <- function(., j ) {
 
     # debug: store proposals being generated (regardless of whether or not they are being accepted)
     # .$dataf$prop_storage[ii, 1:d, j] <- .$dataf$pars[ii, 1:d]
-  }
+  # }
 
   # debug: at end of MAAT simulation, print arrays storing everything
   # if (j == .$wpars$mcmc_maxiter) {
@@ -157,11 +163,13 @@ proposal_generate_demc <- function(., j ) {
 
 
 # calculate proposal acceptance using the Metropolis ratio (for DE-MC algorithm)
-proposal_accept_demc <- function(., j, lklihood ) {
+proposal_accept_demc <- function(., j, k, lklihood ) {
   # print('Proposal Accept DE-MC Subroutine')
 
   # Metropolis ratio
-  metrop_ratio <- exp(lklihood - .$dataf$pars_lklihood[ ,j-1])
+  # metrop_ratio <- exp(lklihood - .$dataf$pars_lklihood[ ,j-1])
+
+  metrop_ratio <- exp(lklihood - .$dataf$pars_lklihood[k, j-1])
 
   # debug: store Metropolis ratio
   # .$dataf$metrop_ratio_storage[1:.$wpars$mcmc_chains, 1, j] <- t(metrop_ratio)
@@ -170,7 +178,9 @@ proposal_accept_demc <- function(., j, lklihood ) {
   # print(paste0('likelihood of current chain = ', .$dataf$pars_lklihood[ ,j-1]))
   # print(paste0('Metropolis ratio = ', metrop_ratio))
 
-  alpha        <- pmin(1, metrop_ratio)
+  # alpha        <- pmin(1, metrop_ratio)
+
+  alpha        <- min(1, metrop_ratio)
 
   # debug: store computed alpha value
   # .$dataf$alpha_storage[1:.$wpars$mcmc_chains, 1, j] <- t(alpha)
@@ -188,14 +198,17 @@ proposal_accept_demc <- function(., j, lklihood ) {
   # print(runif_val)
 
   # evaluate for each chain
-  for(ii in 1:.$dataf$lp) {
+  # for(ii in 1:.$dataf$lp) {
 
     # print(paste0('<<<< iteration = ', j, ', chain = ', ii, ' <<<<'))
+    # print(paste0('<<<< iteration = ', j, ', chain = ', k, ' <<<< (proposal accept fxn)'))
 
     # accept if Metropolis ratio > random number from uniform distribution on interval (0,1)
     # APW: should this be inside or outside of the loop, ie could draw a random outside the loop
     # ALJ: put this outside for-loop and index accept
-    accept <- log(alpha[ii]) > log(runif(1, min = 0, max = 1))
+    # accept <- log(alpha[ii]) > log(runif(1, min = 0, max = 1))
+
+    accept <- log(alpha) > log(runif(1, min = 0, max = 1))
 
     # debug: temporarily hard-code runif-value
     # accept <- log(alpha[ii]) > log(0.843332)
@@ -209,8 +222,11 @@ proposal_accept_demc <- function(., j, lklihood ) {
 
     # print(paste0('accept = ', accept))
 
-    .$dataf$pars_array[ii, , j]   <- if(accept) .$dataf$pars[ii, ]  else .$dataf$pars_array[ii, , j-1]
-    .$dataf$pars_lklihood[ii, j]  <- if(accept) lklihood[ii]        else .$dataf$pars_lklihood[ii, j-1]
+    # .$dataf$pars_array[ii, , j]   <- if(accept) .$dataf$pars[ii, ]  else .$dataf$pars_array[ii, , j-1]
+    # .$dataf$pars_lklihood[ii, j]  <- if(accept) lklihood[ii]        else .$dataf$pars_lklihood[ii, j-1]
+
+    .$dataf$pars_array[k, , j]   <- if(accept) .$dataf$pars[k, ]  else .$dataf$pars_array[k, , j-1]
+    .$dataf$pars_lklihood[k, j]  <- if(accept) lklihood[k]        else .$dataf$pars_lklihood[k, j-1]
 
     # ALJ: note that this is NOT effectively burn-in
     # out_n <- .$wpars$mcmc_maxiter/2
@@ -219,11 +235,12 @@ proposal_accept_demc <- function(., j, lklihood ) {
     #      run for an even number of iterations
     out_n <- 0
     if (j > out_n)
-      .$dataf$out_mcmc[ii, ,(j-out_n)] <- if(accept | j == out_n + 1) .$dataf$out[ii, ] else .$dataf$out_mcmc[ii, , (j-out_n-1)]
+      # .$dataf$out_mcmc[ii, ,(j-out_n)] <- if(accept | j == out_n + 1) .$dataf$out[ii, ] else .$dataf$out_mcmc[ii, , (j-out_n-1)]
+      .$dataf$out_mcmc[k, ,(j-out_n)] <- if(accept | j == out_n + 1) .$dataf$out[k, ] else .$dataf$out_mcmc[k, , (j-out_n-1)]
     # APW: not a huge deal, but this is not quite right in the case where j==out_n+1 but not accepted as it adds the output from the rejected proposal
     # if ((j+1) > out_n)
       # .$dataf$out_mcmc[ii,,(j+1-out_n)] <- if(accept | j==out_n+1) .$dataf$out[ii,] else .$dataf$out_mcmc[ii,,(j-out_n-1)]
-  }
+  # }
 
   # debug: at end of MAAT simulation, print arrays storing everything
   # if (j == .$wpars$mcmc_maxiter) {
@@ -288,7 +305,7 @@ static_dream <- function(.) {
 
 
 # generate proposal using DREAM algorithm
-proposal_generate_dream <- function(., j ) {
+proposal_generate_dream <- function(., j, k ) {
 
   # reset matrix of jump vectors to zero
   .$mcmc$jump[]          <- matrix(data = 0)
@@ -362,7 +379,7 @@ proposal_generate_dream <- function(., j ) {
 
 # proposal acceptance function for the DREAM algorithm
 # in the future: could probably consolidate this with the acceptance function for the DE-MC algorithm
-proposal_accept_dream <- function(., j, lklihood) {
+proposal_accept_dream <- function(., j, k, lklihood) {
 
   # likelihood of current state
   # APW: is this assignment totally necessary? Could we just use the pars_lklihood matrix?

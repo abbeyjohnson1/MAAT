@@ -247,6 +247,10 @@ wrapper_object <-
         if(.$wpars$multic) mclapply( 1:.$dataf$lf, .$runf_mcmc, mc.cores=max(1,floor(.$wpars$procs/.$dataf$lp)), mc.preschedule=F )
         else                 lapply( 1:.$dataf$lf, .$runf_mcmc )
 
+        # debug attempt: call run function
+        # if(.$wpars$multic) mclapply( 1:.$dataf$lf, .$runf_mcmc, mc.cores=max(1,floor(.$wpars$procs/.$dataf$lp)), mc.preschedule=F )
+        # else                 lapply( 1:.$dataf$lf, .$runf_mcmc, i=i, j=j )
+
         # print summary of results
         .$print_output()
 
@@ -389,7 +393,11 @@ wrapper_object <-
     ###########################################################################
 
     # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$fnames matrix to the model
-    runf_mcmc <- function(.,i) {
+    runf_mcmc <- function(., i ) {
+
+    # debug attempt: need to pass in j
+    # runf_mcmc <- function(., i, j ) {
+
       # assumes that each row of the fnames matrix are independent and non-sequential
       # call run_mcmc
 
@@ -404,8 +412,8 @@ wrapper_object <-
       # evaluate model over initial proposals derived from prior
       .$dataf$out[]  <-
         do.call( 'rbind', {
-            if(.$wpars$multic) mclapply(1:.$dataf$lp, .$runp_mcmc, mc.cores=min(.$wpars$procs,.$dataf$lp), mc.preschedule=T  )
-            else                 lapply(1:.$dataf$lp, .$runp_mcmc )
+             if(.$wpars$multic) mclapply(1:.$dataf$lp, .$runp_mcmc, mc.cores=min(.$wpars$procs,.$dataf$lp), mc.preschedule=T  )
+             else                 lapply(1:.$dataf$lp, .$runp_mcmc)
         })
 
       # add to pars array and calculate likelihood of initial proposal
@@ -446,26 +454,33 @@ wrapper_object <-
     }
 
     # This wrapper function is called from a vapply function to iterate / step chains in an MCMC
-    run_mcmc <- function(.,j) {
+    run_mcmc <- function(., j) {
       # runs in serial as each step depends on the previous step
       # call runp_mcmc
 
       # generate proposal matrix
-      get(paste0('proposal_generate_',.$wpars$mcmc_type))(., j=j )
+      # get(paste0('proposal_generate_',.$wpars$mcmc_type))(., j=j )
 
       # evaluate model for proposal on each chain
+      # .$dataf$out[]  <-
+      #   do.call( 'rbind', {
+      #       if(.$wpars$multic) mclapply(1:.$dataf$lp, .$runp_mcmc, mc.cores=min(.$wpars$procs,.$dataf$lp), mc.preschedule=F )
+      #       else                 lapply(1:.$dataf$lp, .$runp_mcmc )
+      #   })
+
+      # debug: evaluate model for proposal on each chain
       .$dataf$out[]  <-
         do.call( 'rbind', {
-            if(.$wpars$multic) mclapply(1:.$dataf$lp, .$runp_mcmc, mc.cores=min(.$wpars$procs,.$dataf$lp), mc.preschedule=F )
-            else                 lapply(1:.$dataf$lp, .$runp_mcmc )
+          if(.$wpars$multic) mclapply(1:.$dataf$lp, .$runp_mcmc, mc.cores=min(.$wpars$procs,.$dataf$lp), mc.preschedule=F )
+          else                 lapply(1:.$dataf$lp, .$runp_mcmc_debug, j=j )
         })
 
       # calculate likelihood of proposals on each chain
       # likelihood function is independent of DE-MC or DREAM algorithms
-      lklihood <- get(.$fnames$proposal_lklihood)(.)
+      # lklihood <- get(.$fnames$proposal_lklihood)(.)
 
       # accept / reject proposals on each chain
-      get(paste0('proposal_accept_',.$wpars$mcmc_type))(., j=j, lklihood )
+      # get(paste0('proposal_accept_',.$wpars$mcmc_type))(., j=j, lklihood )
 
       # future work: insert function call to handle outlier chains here
 
@@ -478,7 +493,7 @@ wrapper_object <-
     }
 
     # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$pars matrix to the model
-    runp_mcmc <- function(.,k) {
+    runp_mcmc <- function(., k ) {
       # runs each chain at each iteration in MCMC
       # assumes that each row of the pars matrix are independent and non-sequential
       # call run met
@@ -490,6 +505,34 @@ wrapper_object <-
       # call metdata run function
       if(.$dataf$lm==1) .$model$run()
       else              vapply(1:.$dataf$lm, .$model$run_met, .$dataf$mout )
+     }
+
+    # debug: try new runp_mcmc fxn to fix bug w/ function call orders
+    # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$pars matrix to the model
+    runp_mcmc_debug <- function(., k, j ) {
+      # runs each chain at each iteration in MCMC
+
+      # debug: assumes that each row of the pars matrix are NOT independent and ARE sequential
+      # debug: this is in contrast to above runp_mcmc function that is commented out
+
+      # generate proposal matrix
+      get(paste0('proposal_generate_',.$wpars$mcmc_type))(., j=j, k=k )
+
+      # configure parameters in the model
+      if(!is.null(.$dataf$pars)) .$model$configure(vlist='pars', df=.$dataf$pars[k,], F )
+      if(.$wpars$cverbose)       .$printc('pars', .$dataf$pars[k,] )
+
+      # call metdata run function
+      if(.$dataf$lm==1) .$model$run()
+      else              vapply(1:.$dataf$lm, .$model$run_met, .$dataf$mout )
+
+      # calculate likelihood of proposals on each chain
+      # likelihood function is independent of DE-MC or DREAM algorithms
+      lklihood <- get(.$fnames$proposal_lklihood)(.)
+
+      # accept / reject proposals on each chain
+      get(paste0('proposal_accept_',.$wpars$mcmc_type))(., j=j, k=k, lklihood )
+
     }
 
 
