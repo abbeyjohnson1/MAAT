@@ -247,10 +247,6 @@ wrapper_object <-
         if(.$wpars$multic) mclapply( 1:.$dataf$lf, .$runf_mcmc, mc.cores=max(1,floor(.$wpars$procs/.$dataf$lp)), mc.preschedule=F )
         else                 lapply( 1:.$dataf$lf, .$runf_mcmc )
 
-        # debug attempt: call run function
-        # if(.$wpars$multic) mclapply( 1:.$dataf$lf, .$runf_mcmc, mc.cores=max(1,floor(.$wpars$procs/.$dataf$lp)), mc.preschedule=F )
-        # else                 lapply( 1:.$dataf$lf, .$runf_mcmc, i=i, j=j )
-
         # print summary of results
         .$print_output()
 
@@ -394,10 +390,6 @@ wrapper_object <-
 
     # This wrapper function is called from an lapply or mclappy function to pass every row of the dataf$fnames matrix to the model
     runf_mcmc <- function(., i ) {
-
-    # debug attempt: need to pass in j
-    # runf_mcmc <- function(., i, j ) {
-
       # assumes that each row of the fnames matrix are independent and non-sequential
       # call run_mcmc
 
@@ -468,7 +460,7 @@ wrapper_object <-
       #       else                 lapply(1:.$dataf$lp, .$runp_mcmc )
       #   })
 
-      # debug: evaluate model for proposal on each chain
+      # debug attempt: evaluate model for proposal on each chain
       .$dataf$out[]  <-
         do.call( 'rbind', {
           if(.$wpars$multic) mclapply(1:.$dataf$lp, .$runp_mcmc, mc.cores=min(.$wpars$procs,.$dataf$lp), mc.preschedule=F )
@@ -512,8 +504,10 @@ wrapper_object <-
     runp_mcmc_debug <- function(., k, j ) {
       # runs each chain at each iteration in MCMC
 
-      # debug: assumes that each row of the pars matrix are NOT independent and ARE sequential
-      # debug: this is in contrast to above runp_mcmc function that is commented out
+      # debug attempt: assumes that each row of the pars matrix are NOT independent and ARE sequential
+      # debug attempt: this is in contrast to above runp_mcmc function that was previously being used
+
+      print(paste0('k = ', k, ' & j = ', j))
 
       # generate proposal matrix
       get(paste0('proposal_generate_',.$wpars$mcmc_type))(., j=j, k=k )

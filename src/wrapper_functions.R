@@ -109,6 +109,7 @@ proposal_generate_demc <- function(., j, k ) {
     # R2 <- 5
 
     # print(paste0('<<<< iteration = ', j, ', chain = ', ii, ' <<<<'))
+
     # print(paste0('<<<< iteration = ', j, ', chain = ', k, ' <<<< (proposal generate fxn)'))
 
     # print(paste0("R1 = ", R1, ", R2 = ", R2))
@@ -123,6 +124,7 @@ proposal_generate_demc <- function(., j, k ) {
       # generate proposal via Differential Evolution
       # .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii, jj, j-1] + gamma_star * (.$dataf$pars_array[R1, jj, j-1] - .$dataf$pars_array[R2, jj, j-1]) + uniform_r
 
+      # debug attempt
       .$dataf$pars[k, jj] <- .$dataf$pars_array[k, jj, j-1] + gamma_star * (.$dataf$pars_array[R1, jj, j-1] - .$dataf$pars_array[R2, jj, j-1]) + uniform_r
 
       # debug: break up proposal generation; create separate "jump" differential value
@@ -174,13 +176,16 @@ proposal_accept_demc <- function(., j, k, lklihood ) {
   metrop_ratio <- exp(lklihood[k, 1] - .$dataf$pars_lklihood[k, j-1])
 
   print(paste0('lklihood[k, 1] = ', lklihood[k, 1]))
+  print(paste0('lklihood[k] = ', lklihood[k]))
   print(paste0('.$dataf$pars_lklihood[k, j-1] = ', .$dataf$pars_lklihood[k, j-1]))
 
   # debug: store Metropolis ratio
   # .$dataf$metrop_ratio_storage[1:.$wpars$mcmc_chains, 1, j] <- t(metrop_ratio)
 
   # print(paste0('likelihood of proposal = ', lklihood))
+
   # print(paste0('likelihood of current chain = ', .$dataf$pars_lklihood[ ,j-1]))
+
   print(paste0('Metropolis ratio = ', metrop_ratio))
 
   # alpha        <- pmin(1, metrop_ratio)
@@ -207,6 +212,7 @@ proposal_accept_demc <- function(., j, k, lklihood ) {
   # for(ii in 1:.$dataf$lp) {
 
     # print(paste0('<<<< iteration = ', j, ', chain = ', ii, ' <<<< (proposal accept fxn)'))
+
     # print(paste0('<<<< iteration = ', j, ', chain = ', k, ' <<<< (proposal accept fxn)'))
 
     # accept if Metropolis ratio > random number from uniform distribution on interval (0,1)
