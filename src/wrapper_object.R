@@ -409,8 +409,8 @@ wrapper_object <-
         })
 
       # add to pars array and calculate likelihood of initial proposal
-      .$dataf$pars_array[,,1]   <- .$dataf$pars
-      .$dataf$pars_lklihood[,1] <- get(.$fnames$proposal_lklihood)(.)
+      .$dataf$pars_array[ , ,1]   <- .$dataf$pars
+      .$dataf$pars_lklihood[ , 1] <- get(.$fnames$proposal_lklihood)(.)
 
       # debug: add to proposal storage array
       # .$dataf$prop_storage[,,1] <- .$dataf$pars
@@ -460,12 +460,12 @@ wrapper_object <-
       #       else                 lapply(1:.$dataf$lp, .$runp_mcmc )
       #   })
 
+      # debug attempt: update parameter array for current iteration
+      .$dataf$pars_array[ , , j]   <- .$dataf$pars_array[ , , j-1]
+
       # debug attempt: evaluate model for proposal on each chain
-      .$dataf$out[]  <-
-        do.call( 'rbind', {
-          if(.$wpars$multic) mclapply(1:.$dataf$lp, .$runp_mcmc, mc.cores=min(.$wpars$procs,.$dataf$lp), mc.preschedule=F )
-          else                 lapply(1:.$dataf$lp, .$runp_mcmc_debug, j=j )
-        })
+      if(.$wpars$multic)  mclapply(1:.$dataf$lp, .$runp_mcmc, mc.cores=min(.$wpars$procs,.$dataf$lp), mc.preschedule=F )
+      else                lapply(1:.$dataf$lp, .$runp_mcmc_debug, j=j )
 
       # calculate likelihood of proposals on each chain
       # likelihood function is independent of DE-MC or DREAM algorithms
@@ -507,7 +507,7 @@ wrapper_object <-
       # debug attempt: assumes that each row of the pars matrix are NOT independent and ARE sequential
       # debug attempt: this is in contrast to above runp_mcmc function that was previously being used
 
-      print(paste0('k = ', k, ' & j = ', j))
+      # print(paste0('k = ', k, ' & j = ', j))
 
       # generate proposal matrix
       get(paste0('proposal_generate_',.$wpars$mcmc_type))(., j=j, k=k )
@@ -516,16 +516,17 @@ wrapper_object <-
       if(!is.null(.$dataf$pars)) .$model$configure(vlist='pars', df=.$dataf$pars[k,], F )
       if(.$wpars$cverbose)       .$printc('pars', .$dataf$pars[k,] )
 
-      # call metdata run function
-      if(.$dataf$lm==1) .$model$run()
-      else              vapply(1:.$dataf$lm, .$model$run_met, .$dataf$mout )
+      # debug attempt: call metdata run function
+      .$dataf$out[k]  <-
+        if(.$dataf$lm==1) .$model$run()
+        else              vapply(1:.$dataf$lm, .$model$run_met, .$dataf$mout )
 
       # calculate likelihood of proposals on each chain
       # likelihood function is independent of DE-MC or DREAM algorithms
       lklihood <- get(.$fnames$proposal_lklihood)(.)
 
       # accept / reject proposals on each chain
-      get(paste0('proposal_accept_',.$wpars$mcmc_type))(., j=j, k=k, lklihood )
+      get(paste0('proposal_accept_',.$wpars$mcmc_type))(., j=j, k=k, lklihood=lklihood )
 
     }
 

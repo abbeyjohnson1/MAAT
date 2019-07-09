@@ -62,7 +62,7 @@ boundary_handling <- function(., ii, jj ) {
 
 # generate proposal using DE-MC algorithm
 proposal_generate_demc <- function(., j, k ) {
-  print('Proposal Generate DE-MC Subroutine')
+  # print('Proposal Generate DE-MC Subroutine')
 
   # scaling factor
   d <- ncol(.$dataf$pars)
@@ -73,6 +73,7 @@ proposal_generate_demc <- function(., j, k ) {
   b_rand  <- 0.01
 
   # evaluate for each chain
+  # debug attempt: comment out for-loop iterating through chains
   # for (ii in 1:.$dataf$lp) {
 
     # debug: temporarily hardcode uniform_r
@@ -125,7 +126,7 @@ proposal_generate_demc <- function(., j, k ) {
       # .$dataf$pars[ii,jj] <- .$dataf$pars_array[ii, jj, j-1] + gamma_star * (.$dataf$pars_array[R1, jj, j-1] - .$dataf$pars_array[R2, jj, j-1]) + uniform_r
 
       # debug attempt
-      .$dataf$pars[k, jj] <- .$dataf$pars_array[k, jj, j-1] + gamma_star * (.$dataf$pars_array[R1, jj, j-1] - .$dataf$pars_array[R2, jj, j-1]) + uniform_r
+      .$dataf$pars[k, jj] <- .$dataf$pars_array[k, jj, j] + gamma_star * (.$dataf$pars_array[R1, jj, j] - .$dataf$pars_array[R2, jj, j]) + uniform_r
 
       # debug: break up proposal generation; create separate "jump" differential value
       # jump <- gamma_star * (.$dataf$pars_array[R1,jj,j-1] - .$dataf$pars_array[R2,jj,j-1]) + uniform_r
@@ -167,17 +168,16 @@ proposal_generate_demc <- function(., j, k ) {
 
 # calculate proposal acceptance using the Metropolis ratio (for DE-MC algorithm)
 proposal_accept_demc <- function(., j, k, lklihood ) {
-  print('Proposal Accept DE-MC Subroutine')
+  # print('Proposal Accept DE-MC Subroutine')
 
   # Metropolis ratio
   # metrop_ratio <- exp(lklihood - .$dataf$pars_lklihood[ ,j-1])
 
   # debug attempt
-  metrop_ratio <- exp(lklihood[k, 1] - .$dataf$pars_lklihood[k, j-1])
+  metrop_ratio <- exp(lklihood[k] - .$dataf$pars_lklihood[k, j-1])
 
-  print(paste0('lklihood[k, 1] = ', lklihood[k, 1]))
-  print(paste0('lklihood[k] = ', lklihood[k]))
-  print(paste0('.$dataf$pars_lklihood[k, j-1] = ', .$dataf$pars_lklihood[k, j-1]))
+  # print(paste0('lklihood[k] = ', lklihood[k]))
+  # print(paste0('.$dataf$pars_lklihood[k, j-1] = ', .$dataf$pars_lklihood[k, j-1]))
 
   # debug: store Metropolis ratio
   # .$dataf$metrop_ratio_storage[1:.$wpars$mcmc_chains, 1, j] <- t(metrop_ratio)
@@ -186,7 +186,7 @@ proposal_accept_demc <- function(., j, k, lklihood ) {
 
   # print(paste0('likelihood of current chain = ', .$dataf$pars_lklihood[ ,j-1]))
 
-  print(paste0('Metropolis ratio = ', metrop_ratio))
+  # print(paste0('Metropolis ratio = ', metrop_ratio))
 
   # alpha        <- pmin(1, metrop_ratio)
 
@@ -209,6 +209,7 @@ proposal_accept_demc <- function(., j, k, lklihood ) {
   # print(runif_val)
 
   # evaluate for each chain
+  # debug attempt: comment out for-loop
   # for(ii in 1:.$dataf$lp) {
 
     # print(paste0('<<<< iteration = ', j, ', chain = ', ii, ' <<<< (proposal accept fxn)'))
