@@ -937,8 +937,8 @@ wrapper_object <-
     )
 
     fnames <- list(
-      proposal_lklihood = 'f_proposal_lklihood_log'
-      #proposal_lklihood = 'f_proposal_lklihood_ssquared_se'
+      #proposal_lklihood = 'f_proposal_lklihood_log'
+      proposal_lklihood = 'f_proposal_lklihood_ssquared_se'
     )
 
 
