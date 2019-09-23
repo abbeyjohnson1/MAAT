@@ -708,6 +708,9 @@ mcmc_outlier_iqr <- function(., j) {
       }
     }
 
+    # IMPORTANT QUESTOIN: do i replace just the current iteration, or do i replace the whole sampled history???
+    # IMPORTANT: I THINK THIS IS INCORRECT, I.E., 1 SHOULD NOT BE THE SECOND INDEX
+
     # replace outlier chain(s)
     .$dataf$pars_array[outliers, 1, j] <- .$dataf$pars_array[replace_idx, 1, j]
     .$dataf$pars_lklihood[outliers, j] <- .$dataf$pars_lklihood[replace_idx, j]
