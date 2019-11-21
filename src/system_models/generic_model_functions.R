@@ -105,13 +105,13 @@ init_state <- function(.) {
 }
 
 
-# this currently works both when called from unit testing and from the wrapper 
+# this currently works both when called from unit testing and from the wrapper
 # - not 100 % sure why as when called from the wrapper .$dataf shoudl read .super$dataf
 # - maybe a result of being called from teh wraopoer and maybe . represents the object within which the function is called?
 run_met <- function(.,l) {
 
   if(!is.null(.$init)) .$init()
-  t(vapply(1:.$dataf$lm, .$run_met1, .$dataf$mout )) 
+  t(vapply(1:.$dataf$lm, .$run_met1, .$dataf$mout ))
 }
 
 
